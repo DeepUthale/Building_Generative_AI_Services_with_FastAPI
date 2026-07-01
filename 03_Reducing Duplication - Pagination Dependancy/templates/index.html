@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pagination Demo</title>
+    <style>
+        body { font-family: sans-serif; max-width: 700px; margin: 2rem auto; }
+        .panel { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin-bottom: 2rem; }
+        button { padding: 0.4rem 1rem; margin-right: 0.5rem; }
+        ul { padding-left: 1.2rem; }
+        .status { color: #666; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <h1>Pagination Demo</h1>
+
+    <div class="panel" id="messages-panel">
+        <h2>Messages</h2>
+        <ul id="messages-list"></ul>
+        <button onclick="prevPage('messages')">Prev</button>
+        <button onclick="nextPage('messages')">Next</button>
+        <span class="status" id="messages-status"></span>
+    </div>
+
+    <div class="panel" id="conversations-panel">
+        <h2>Conversations</h2>
+        <ul id="conversations-list"></ul>
+        <button onclick="prevPage('conversations')">Prev</button>
+        <button onclick="nextPage('conversations')">Next</button>
+        <span class="status" id="conversations-status"></span>
+    </div>
+
+    <script>
+        const limit = 10;
+        const skipByEndpoint = { messages: 0, conversations: 0 };
+
+        async function loadPage(endpoint) {
+            const skip = skipByEndpoint[endpoint];
+            const res = await fetch(`/${endpoint}?skip=${skip}&limit=${limit}`);
+            const items = await res.json();
+
+            const list = document.getElementById(`${endpoint}-list`);
+            list.innerHTML = items
+                .map(item => `<li>${item.text ?? item.title}</li>`)
+                .join("");
+
+            document.getElementById(`${endpoint}-status`).textContent =
+                `skip=${skip}, limit=${limit}`;
+        }
+
+        function nextPage(endpoint) {
+            skipByEndpoint[endpoint] += limit;
+            loadPage(endpoint);
+        }
+
+        function prevPage(endpoint) {
+            skipByEndpoint[endpoint] = Math.max(0, skipByEndpoint[endpoint] - limit);
+            loadPage(endpoint);
+        }
+
+        loadPage("messages");
+        loadPage("conversations");
+    </script>
+</body>
+</html>
